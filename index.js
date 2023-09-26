@@ -47,16 +47,16 @@ server.get('/products', function (req, res, next) {
   })
 })
 
-// Get a single product by their product id
+// Retrieving each product by product id
 server.get('/products/:id', function (req, res, next) {
   console.log('GET /products/:id params=>' + JSON.stringify(req.params));
   getCounter++;
   console.log('GET:' + getCounter, 'POST: ' + postCounter)
 
-  // Find a single product by their id within save
+  // Searching each product by product id 
   productsSave.findOne({ _id: req.params.id }, function (error, product) {
 
-    // If there are any errors, pass them to next in the correct format
+    // Errors Hanlding 
     if (error) {
       return next(new Error(JSON.stringify(error.errors)))
     }
@@ -64,11 +64,11 @@ server.get('/products/:id', function (req, res, next) {
     console.log(`${req.method} ${req.url}: sending response`);
 
     if (product) {
-      // Send the user if no issues
+      // Release the product if no issues
       res.send(product)
       console.log('GET /products/:id: retrieved a product')
     } else {
-      // Send 404 header if the user doesn't exist
+      // if the product doesn't exits
       res.send(404)
     }
   })
@@ -84,19 +84,19 @@ server.post('/products', function (req, res, next) {
   // validation of manadatory fields
   if (req.body.productID === undefined ) {
     // If there are any errors, pass them to next in the correct format
-    return next(new errors.BadRequestError('name must be supplied'))
+    return next(new errors.BadRequestError('ProductID number is mandatory'))
   }
   if (req.body.name === undefined ) {
     // If there are any errors, pass them to next in the correct format
-    return next(new errors.BadRequestError('name must be supplied'))
+    return next(new errors.BadRequestError('Name field is mandatory'))
   }
   if (req.body.price === undefined ) {
     // If there are any errors, pass them to next in the correct format
-    return next(new errors.BadRequestError('price must be supplied'))
+    return next(new errors.BadRequestError('Price value is mandatory'))
   }
   if (req.body.quantity === undefined ) {
     // If there are any errors, pass them to next in the correct format
-    return next(new errors.BadRequestError('quantity must be supplied'))
+    return next(new errors.BadRequestError('Quatity value is mandatory'))
   }
 
   let newProduct = {
@@ -106,17 +106,36 @@ server.post('/products', function (req, res, next) {
     quantity: req.body.quantity
 	}
 
-  // Create the product using the persistence engine
-  productsSave.create( newProduct, function (error, product) {
+// Create the product using the persistence engine
+productsSave.create( newProduct, function (error, product) {
 
     console.log(`${req.method} ${req.url}: sending response`);
 
-    // If there are any errors, pass them to next in the correct format
+    // Errors Handling,
     if (error) {
       return next(new Error(JSON.stringify(error.errors)))
     }
-    // Send the product if no issues
+    // Retrieve product if no error occured
     res.send(201, product)
-    console.log('POST /products: product created successfully')
+    console.log('POST /products: New product Added.')
   })  
 })
+
+// Delete all products
+server.del('/products', function (req, res, next) {
+    console.log('DELETE /products params=>' + JSON.stringify(req.params));
+  
+    // Delete all products from the persistence engine
+    productsSave.deleteMany({}, function (error) {
+  
+      console.log(`${req.method} ${req.url}: sending response`);
+      
+      // If there are any errors, pass them to next in the correct format
+      if (error) {
+        return next(new Error(JSON.stringify(error.errors)));
+      }
+      // Send a success response indicating the number of products deleted
+      res.send(204)
+      console.log('DELETE /products: All Products deleted ')
+    });
+  });
